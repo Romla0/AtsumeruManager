@@ -27,10 +27,10 @@ apply plugin: 'com.sandec.jpro'
 
 repositories {
     mavenCentral()
-    //noinspection JCenterRepository
-    jcenter()
     maven { url 'https://jitpack.io' }
     maven { url 'https://nexus.gluonhq.com/nexus/content/repositories/releases/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://sandec.jfrog.io/artifactory/repo' }
 }
 
 applicationName = 'Atsumeru Manager'
@@ -216,29 +216,34 @@ sourceSets.main.java.srcDir generateJava.outputDir
 
 tasks.register('nativePostBuild') {
     doLast {
-        exec {
-            def platform
-            def binaryName = "AtsumeruManager"
-            def binaryExtension = ""
-            def upxScriptExtension
+        // Пропускаем UPX в CI (GitHub Actions устанавливает переменную окружения CI=true)
+        if (System.getenv('CI') == null) {
+            exec {
+                def platform
+                def binaryName = "AtsumeruManager"
+                def binaryExtension = ""
+                def upxScriptExtension
 
-            if (os.isLinux()) {
-                platform = "linux"
-                upxScriptExtension = ".sh"
-            } else if (os.isMacOsX()) {
-                platform = "darwin"
-                upxScriptExtension = ".sh"
-            } else {
-                platform = "windows"
-                binaryExtension = ".exe"
-                upxScriptExtension = ".cmd"
-            }
+                if (os.isLinux()) {
+                    platform = "linux"
+                    upxScriptExtension = ".sh"
+                } else if (os.isMacOsX()) {
+                    platform = "darwin"
+                    upxScriptExtension = ".sh"
+                } else {
+                    platform = "windows"
+                    binaryExtension = ".exe"
+                    upxScriptExtension = ".cmd"
+                }
 
-            delete "${projectDir}/build/gluonfx/x86_64-" + platform + "/" + binaryName + binaryExtension
-            if (!os.isMacOsX()) {
-                workingDir "${projectDir}/tools"
-                executable "${workingDir}/upx_pack_atsumeru" + upxScriptExtension
+                delete "${projectDir}/build/gluonfx/x86_64-" + platform + "/" + binaryName + binaryExtension
+                if (!os.isMacOsX()) {
+                    workingDir "${projectDir}/tools"
+                    executable "${workingDir}/upx_pack_atsumeru" + upxScriptExtension
+                }
             }
+        } else {
+            println "Running in CI – skipping UPX compression"
         }
     }
 }
@@ -287,40 +292,6 @@ run {
         add("--add-exports=javafx.base/com.sun.javafx.collections=ALL-UNNAMED");
         add("--add-exports=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED");
     }}
-    
-    tasks.register('nativePostBuild') {
-    doLast {
-        // Пропускаем UPX в CI (GitHub Actions устанавливает переменную окружения CI=true)
-        if (System.getenv('CI') == null) {
-            exec {
-                def platform
-                def binaryName = "AtsumeruManager"
-                def binaryExtension = ""
-                def upxScriptExtension
-
-                if (os.isLinux()) {
-                    platform = "linux"
-                    upxScriptExtension = ".sh"
-                } else if (os.isMacOsX()) {
-                    platform = "darwin"
-                    upxScriptExtension = ".sh"
-                } else {
-                    platform = "windows"
-                    binaryExtension = ".exe"
-                    upxScriptExtension = ".cmd"
-                }
-
-                delete "${projectDir}/build/gluonfx/x86_64-" + platform + "/" + binaryName + binaryExtension
-                if (!os.isMacOsX()) {
-                    workingDir "${projectDir}/tools"
-                    executable "${workingDir}/upx_pack_atsumeru" + upxScriptExtension
-                }
-            }
-        } else {
-            println "Running in CI – skipping UPX compression"
-        }
-    }
-}
 
     applicationDefaultJvmArgs = args
     jvmArgs = args
