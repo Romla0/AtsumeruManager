@@ -36,7 +36,6 @@ jobs:
           echo "MACOSX_GRAALVM_SDK_PATH=" >> gradle.properties
         shell: bash
 
-      # Новый шаг: очистка кэша зависимостей
       - name: Clean Gradle cache
         run: |
           rm -rf ~/.gradle/caches/
