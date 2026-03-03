@@ -1,0 +1,49 @@
+name: Build Native Windows Executable (GluonFX)
+
+on:
+  push:
+    branches: [ "main" ]          # замените на вашу основную ветку
+    tags: [ 'v*' ]                # для тегов
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '11'                     # как в вашем build.gradle (используется Java 11)
+          distribution: 'graalvm'                 # можно 'liberica' для native-image
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+          cache: 'gradle'
+
+      - name: Check versions
+        run: |
+          java --version
+          native-image --version
+
+      - name: Create gradle.properties with GraalVM path
+        # Создаём временный gradle.properties, чтобы gluonfx нашёл GraalVM
+        run: |
+          echo "WINDOWS_GRAALVM_SDK_PATH=${{ env.JAVA_HOME }}" > gradle.properties
+          echo "LINUX_GRAALVM_SDK_PATH=" >> gradle.properties
+          echo "MACOSX_GRAALVM_SDK_PATH=" >> gradle.properties
+        shell: bash
+
+      - name: Build native image with GluonFX
+        # Запускаем задачу nativeBuild (которая у вас уже есть)
+        run: ./gradlew nativeBuild --no-daemon
+        shell: bash
+
+      - name: Upload native executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: AtsumeruManager-Windows-x64
+          path: build/gluonfx/x86_64-windows/*.exe   # путь, куда gluonfx кладёт .exe
