@@ -1,8 +1,8 @@
-name: Build Native Windows Executable (GluonFX)
+name: Build Native Windows Executable (GluonFX, Java 17)
 
 on:
   push:
-    branches: [ "main" ]          # замените на вашу основную ветку
+    branches: [ "main" ]          # замените на вашу основную ветку, если нужно
     tags: [ 'v*' ]                # для тегов
   pull_request:
     branches: [ "main" ]
@@ -15,11 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup GraalVM
+      - name: Setup GraalVM (Java 17)
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '11'                     # как в вашем build.gradle (используется Java 11)
-          distribution: 'graalvm'                 # можно 'liberica' для native-image
+          java-version: '17'                     # используем Java 17
+          distribution: 'graalvm'                 # можно также 'liberica'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
           cache: 'gradle'
@@ -38,7 +38,7 @@ jobs:
         shell: bash
 
       - name: Build native image with GluonFX
-        # Запускаем задачу nativeBuild (которая у вас уже есть)
+        # Запускаем задачу nativeBuild (которая уже есть в build.gradle)
         run: ./gradlew nativeBuild --no-daemon
         shell: bash
 
