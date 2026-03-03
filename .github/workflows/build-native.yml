@@ -1,7 +1,7 @@
 name: Build Native Windows Executable (GluonFX, Java 17)
 
 on:
-  workflow_dispatch:        # добавляет кнопку "Run workflow"
+  workflow_dispatch:
   push:
     branches: [ "main" ]
     tags: [ 'v*' ]
@@ -36,8 +36,14 @@ jobs:
           echo "MACOSX_GRAALVM_SDK_PATH=" >> gradle.properties
         shell: bash
 
+      # Новый шаг: очистка кэша зависимостей
+      - name: Clean Gradle cache
+        run: |
+          rm -rf ~/.gradle/caches/
+        shell: bash
+
       - name: Build native image with GluonFX
-        run: ./gradlew nativeBuild --no-daemon
+        run: ./gradlew nativeBuild --no-daemon --refresh-dependencies
         shell: bash
 
       - name: Upload native executable
