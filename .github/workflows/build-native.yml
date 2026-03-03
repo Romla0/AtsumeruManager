@@ -1,10 +1,10 @@
 name: Build Native Windows Executable (GluonFX, Java 17)
 
 on:
+  workflow_dispatch:        # добавляет кнопку "Run workflow"
   push:
-    branches: [ "main" ]          # сборка при пуше в main
-    tags: [ 'v*' ]                # сборка при создании тега (например, v1.0.0)
-  # pull_request:                  # эта секция полностью удалена
+    branches: [ "main" ]
+    tags: [ 'v*' ]
 
 jobs:
   build-windows:
