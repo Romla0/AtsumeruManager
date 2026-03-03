@@ -2,8 +2,8 @@ name: Build Native Windows Executable (GluonFX, Java 17)
 
 on:
   push:
-    branches: [ "main" ]          # замените на вашу основную ветку, если нужно
-    tags: [ 'v*' ]                # для тегов
+    branches: [ "main" ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ "main" ]
 
@@ -18,8 +18,9 @@ jobs:
       - name: Setup GraalVM (Java 17)
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '17'                     # используем Java 17
-          distribution: 'graalvm'                 # можно также 'liberica'
+          java-version: '17'
+          distribution: 'graalvm'
+          version: '23.0.2'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
           cache: 'gradle'
@@ -30,7 +31,6 @@ jobs:
           native-image --version
 
       - name: Create gradle.properties with GraalVM path
-        # Создаём временный gradle.properties, чтобы gluonfx нашёл GraalVM
         run: |
           echo "WINDOWS_GRAALVM_SDK_PATH=${{ env.JAVA_HOME }}" > gradle.properties
           echo "LINUX_GRAALVM_SDK_PATH=" >> gradle.properties
@@ -38,7 +38,6 @@ jobs:
         shell: bash
 
       - name: Build native image with GluonFX
-        # Запускаем задачу nativeBuild (которая уже есть в build.gradle)
         run: ./gradlew nativeBuild --no-daemon
         shell: bash
 
@@ -46,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: AtsumeruManager-Windows-x64
-          path: build/gluonfx/x86_64-windows/*.exe   # путь, куда gluonfx кладёт .exe
+          path: build/gluonfx/x86_64-windows/*.exe
